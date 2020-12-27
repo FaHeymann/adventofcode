@@ -1,4 +1,4 @@
-const input = `2-8 t: pncmjxlvckfbtrjh
+2-8 t: pncmjxlvckfbtrjh
 8-9 l: lzllllldsl
 3-11 c: ccchcccccclxnkcmc
 3-10 h: xcvxkdqshh
@@ -997,19 +997,4 @@ const input = `2-8 t: pncmjxlvckfbtrjh
 10-18 h: xkswshrhghxlnmhqzr
 5-18 k: kkkkkkkhkkkklkkkknk
 9-10 t: ttttttttnt
-10-11 x: xxxxxxxxxcv`;
-
-console.log(input.split('\n').reduce((count, line) => {
-  const [restriction, charRaw, pw] = line.split(' ');
-  const char = charRaw.substring(0, 1);
-  const [min, max] = restriction.split('-');
-  const occ = pw.split('').reduce((prev, cur) => cur === char ? prev + 1 : prev, 0);
-  return min <= occ && occ <= max ? count + 1 : count;
-}, 0));
-
-console.log(input.split('\n').reduce((count, line) => {
-  const [restriction, charRaw, pw] = line.split(' ');
-  const char = charRaw.substring(0, 1);
-  const [a, b] = restriction.split('-');
-  return (pw[a - 1] === char) != (pw[b - 1] === char) ? count + 1 : count;
-}, 0));
+10-11 x: xxxxxxxxxcv
