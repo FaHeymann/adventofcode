@@ -1,6 +1,3 @@
-
-
-
 const p1Start = 8;
 const p2Start = 3
 
