@@ -1,26 +1,8 @@
-// const input = `        ...#
-//         .#..
-//         #...
-//         ....
-// ...#.......#
-// ........#...
-// ..#....#....
-// ..........#.
-//         ...#....
-//         .....#..
-//         .#......
-//         ......#.
-
-// 10R5L5R10L4R5L5`;
-
 const input = require("fs").readFileSync("inputs/2022/22.txt").toString();
 
 const [rawMap, sequence] = input.split("\n\n");
 
 const map = {};
-
-let startX = undefined;
-let startY = undefined;
 
 const turn = {
   R: {
@@ -37,13 +19,13 @@ const turn = {
   },
 };
 
-const sideLength = 50
+const sideLength = 50;
 
 rawMap.split("\n").forEach((line, y) => {
   line.split("").forEach((s, x) => {
-    const localY = y % sideLength
-    const localX = x % sideLength
-    const segment = Math.floor(y / sideLength) * 3 + Math.floor(x / sideLength)
+    const localY = y % sideLength;
+    const localX = x % sideLength;
+    const segment = Math.floor(y / sideLength) * 3 + Math.floor(x / sideLength);
     if ([".", "#"].includes(s)) {
       map[`${segment}#${localY}#${localX}`] = s;
     }
@@ -68,93 +50,93 @@ const parseSequence = (sequence) => {
 
 const changeSegment = {
   R: {
-    1: (y, x) => ({}),
-    2: (y, x) => ({}),
-    4: (y, x) => ({}),
-    6: (y, x) => ({}),
-    7: (y, x) => ({}),
-    9: (y, x) => ({}),
-  },
-  D: {
-    1: (y, x) => ({}),
-    2: (y, x) => ({}),
-    4: (y, x) => ({}),
-    6: (y, x) => ({}),
-    7: (y, x) => ({}),
-    9: (y, x) => ({}),
+    1: (y) => ({ segment: 2, y, x: 0, dir: "R" }),
+    2: (y) => ({ segment: 7, y: sideLength - 1 - y, x: sideLength - 1, dir: "L" }),
+    4: (y) => ({ segment: 2, y: sideLength - 1, x: y, dir: "U" }),
+    6: (y) => ({ segment: 7, y, x: 0, dir: "R" }),
+    7: (y) => ({ segment: 2, y: sideLength - 1 - y, x: sideLength - 1, dir: "L" }),
+    9: (y) => ({ segment: 7, y: sideLength - 1, x: y, dir: "U" }),
   },
   L: {
-    1: (y, x) => ({}),
-    2: (y, x) => ({}),
-    4: (y, x) => ({}),
-    6: (y, x) => ({}),
-    7: (y, x) => ({}),
-    9: (y, x) => ({}),
+    1: (y) => ({ segment: 6, y: sideLength - 1 - y, x: 0, dir: 'R' }),
+    2: (y) => ({ segment: 1, y, x: sideLength - 1, dir: 'L' }),
+    4: (y) => ({ segment: 6, y: 0, x: y, dir: 'D' }),
+    6: (y) => ({ segment: 1, y: sideLength - 1 - y, x: 0, dir: 'R' }),
+    7: (y) => ({ segment: 6, y, x: sideLength - 1, dir: 'L' }),
+    9: (y) => ({ segment: 1, y: 0, x: y, dir: 'D' }),
   },
   U: {
-    1: (y, x) => ({}),
-    2: (y, x) => ({}),
-    4: (y, x) => ({}),
-    6: (y, x) => ({}),
-    7: (y, x) => ({}),
-    9: (y, x) => ({}),
-  }
-}
+    1: (x) => ({ segment: 9, y: x, x: 0, dir: 'R' }),
+    2: (x) => ({ segment: 9, y: sideLength - 1, x, dir: 'U' }),
+    4: (x) => ({ segment: 1, y: sideLength - 1, x, dir: 'U' }),
+    6: (x) => ({ segment: 4, y: x, x: 0, dir: 'R' }),
+    7: (x) => ({ segment: 4, y: sideLength - 1, x, dir: 'U' }),
+    9: (x) => ({ segment: 6, y: sideLength - 1, x, dir: 'U' }),
+  },
+  D: {
+    1: (x) => ({ segment: 4, y: 0, x, dir: 'D' }),
+    2: (x) => ({ segment: 4, y: x, x: sideLength - 1, dir: 'L' }),
+    4: (x) => ({ segment: 7, y: 0, x, dir: 'D' }),
+    6: (x) => ({ segment: 9, y: 0, x, dir: 'D' }),
+    7: (x) => ({ segment: 9, y: x, x: sideLength - 1, dir: 'L' }),
+    9: (x) => ({ segment: 2, y: 0, x, dir: 'D' }),
+  },
+};
 
 const getNext = (segment, y, x, dir) => {
   if (dir === "R") {
     if (x === sideLength - 1) {
-      return changeSegment.R[segment](y, x)
+      return changeSegment.R[segment](y);
     }
-    return { segment, y, x: x + 1, dir }
+    return { segment, y, x: x + 1, dir };
   }
   if (dir === "L") {
     if (x === 0) {
-      return changeSegment.L[segment](y, x)
+      return changeSegment.L[segment](y);
     }
-    return { segment, y, x: x - 1, dir }
+    return { segment, y, x: x - 1, dir };
   }
   if (dir === "U") {
     if (y === 0) {
-      return changeSegment.U[segment](y, x)
+      return changeSegment.U[segment](x);
     }
-    return { segment, y: y - 1, x, dir }
+    return { segment, y: y - 1, x, dir };
   }
   if (dir === "D") {
     if (y === sideLength - 1) {
-      return changeSegment.D[segment](y, x)
+      return changeSegment.D[segment](x);
     }
-    return { segment, y: y + 1, x, dir }
+    return { segment, y: y + 1, x, dir };
   }
-  throw new Error('woops')
 };
 
-let y = startY;
-let x = startX;
+let y = 0;
+let x = 0;
+let segment = 1;
 let dir = "R";
 
 const move = () => {
-  const [nextY, nextX] = getNext(y, x, dir);
-  if (map[`${nextY}#${nextX}`] === "#") {
+  const { x: nextX, y: nextY, segment: nextSegment, dir: nextDir } = getNext(segment, y, x, dir);
+  if (map[`${nextSegment}#${nextY}#${nextX}`] === "#") {
     return;
   }
+  segment = nextSegment;
   y = nextY;
   x = nextX;
+  dir = nextDir;
 };
 
-// parseSequence(sequence).forEach((step) => {
-//   if (step === "L") {
-//     dir = turn["L"][dir];
-//   } else if (step === "R") {
-//     dir = turn["R"][dir];
-//   } else {
-//     for (let i = 0; i < step; i++) {
-//       move();
-//       console.log(y, x, dir);
-//     }
-//   }
-//   console.log(y, x, dir);
-// });
+parseSequence(sequence).forEach((step) => {
+  if (step === "L") {
+    dir = turn["L"][dir];
+  } else if (step === "R") {
+    dir = turn["R"][dir];
+  } else {
+    for (let i = 0; i < step; i++) {
+      move();
+    }
+  }
+});
 
 const dirToScore = {
   R: 0,
@@ -162,10 +144,4 @@ const dirToScore = {
   L: 2,
   U: 3,
 };
-
-console.log(1000 * (y + 1) + 4 * (x + 1) + dirToScore[dir]);
-
-// console.log(map);
-// console.log(maxY, maxX);
-// console.log(startY, startX);
-// console.log(parseSequence(sequence));
+console.log(1000 * (Math.floor(segment / 3) * sideLength + y + 1) + 4 * ((segment % 3) * sideLength + x + 1) + dirToScore[dir]);
