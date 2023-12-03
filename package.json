@@ -1,0 +1,22 @@
+{
+  "name": "adventofcode",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/FaHeymann/adventofcode.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/FaHeymann/adventofcode/issues"
+  },
+  "homepage": "https://github.com/FaHeymann/adventofcode#readme",
+  "dependencies": {
+    "z3-solver": "^4.12.4"
+  }
+}
