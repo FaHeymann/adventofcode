@@ -6,7 +6,7 @@
 
 const input = require("fs").readFileSync("inputs/2023/24.txt").toString();
 
-const particles = input.split("\n").map((line) => {
+const [p1, p2, ...particles] = input.split("\n").map((line) => {
   const [pos, vel] = line
     .split(" @ ")
     .map((a) => a.split(", ").map((n) => parseInt(n, 10)));
@@ -32,7 +32,7 @@ const positionAfterTime = (particle, time) => {
   ];
 };
 
-const impossibleDistances = new Set()
+const possibleTimeDifferences = new Set()
 
 const check = (p1, p2, t1, t2) => {
   const position1 = positionAfterTime(p1, t1);
@@ -49,10 +49,12 @@ const check = (p1, p2, t1, t2) => {
     !Number.isInteger(velocity[1]) ||
     !Number.isInteger(velocity[2])
   ) {
-    impossibleDistances.add(t2 - t1)
-    console.log('impossible', t2 - t1)
+    // console.log('impossible', t2 - t1)
     return;
   }
+
+  possibleTimeDifferences.add(t2 - t1)
+  // console.log('possible', t2 - t1)
 
   // console.log(velocity)
 
@@ -136,15 +138,20 @@ const check = (p1, p2, t1, t2) => {
 //   }
 // }
 
-for (let t2 = 1; t2 < 100000; t2++) {
-  for (let t1 = 1; t1 < t2; t1++) {
-    if (impossibleDistances.has(t2 - t1)) {
-      continue
-    }
+for (let t2 = 2; t2 < 10000000000; t2++) {
     // console.log(t1, t2)
 
-    check(particles[0], particles[1], t1, t2);
-    check(particles[1], particles[0], t1, t2);
+  if (t2 % 10000000 === 0) {
+    console.log(possibleTimeDifferences)
+  }
+
+  possibleTimeDifferences.forEach(option => {
+    check(p1, p2, t2 - option, t2);
+    check(p2, p1, t2 - option, t2);
+  })
+
+  check(p1, p2, 1, t2);
+  check(p2, p1, 1, t2);
 
     // for (let i = 0; i < particles.length; i++) {
     //   for (let j = 0; j < i; j++) {
@@ -154,9 +161,16 @@ for (let t2 = 1; t2 < 100000; t2++) {
     //     // check(particles[j], particles[i], t1, t2);
     //   }
     // }
-  }
 }
 
 // for (let i = 0)
 
 // check(particles[1], particles[0], 3, 5)
+
+
+
+// assume t2 > t1
+// p_1 + t_1 * v_1 = p_2 + t_2 * v_2 + (t2 - t1) * v_x
+// p_1 + t_1 * v_1 = p_2 + t_2 * v_2 + t_2 * v_x - t_1 * v_x
+// p_1 + t_1 * v_1 + t_1 * v_x = p_2 + t_2 * v_2 + t_2 * v_x
+// p_1 + t_1 * (v_1 + v_x) = p_2 + t_2 * (v_2 + v_x)

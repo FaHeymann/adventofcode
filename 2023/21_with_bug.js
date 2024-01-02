@@ -92,7 +92,7 @@ const solve = (yMap, xMap, startPoints) => {
       } else if (
         wentUp[1].every(([_, priorX, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(x - priorX)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) < Math.abs(x - priorX)
           );
         })
       ) {
@@ -107,7 +107,7 @@ const solve = (yMap, xMap, startPoints) => {
       } else if (
         wentDown[1].every(([_, priorX, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(x - priorX)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) < Math.abs(x - priorX)
           );
         })
       ) {
@@ -123,7 +123,7 @@ const solve = (yMap, xMap, startPoints) => {
       } else if (
         wentLeft[1].every(([priorY, _, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(y - priorY)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) < Math.abs(y - priorY)
           );
         })
       ) {
@@ -138,7 +138,7 @@ const solve = (yMap, xMap, startPoints) => {
       } else if (
         wentRight[1].every(([priorY, _, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(y - priorY)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) < Math.abs(y - priorY)
           );
         })
       ) {
@@ -198,9 +198,11 @@ const solve = (yMap, xMap, startPoints) => {
   }
 
   furtherCalls.forEach(furtherCall => {
+    console.log(furtherCall)
     const mappedFurtherCall = [furtherCall[0], furtherCall[1], furtherCall[2].map(startPoint => {
       return [startPoint[0], startPoint[1], startPoint[2] + distanceUntilStart]
     })]
+    console.log(mappedFurtherCall)
     mapQueue.unshift(mappedFurtherCall)
     cacheEntry.furtherCalls.push(furtherCall)
   })
@@ -215,7 +217,7 @@ while (mapQueue.length > 0) {
   solve(...mapQueue.pop());
 }
 
-console.log(JSON.stringify(cache, null, 2))
+// console.log(JSON.stringify(cache, null, 2))
 
 // solve(0, 0, startPoint[0], startPoint[1], 0)
 

@@ -1,20 +1,20 @@
-const input = `...........
-.....###.#.
-.###.##..#.
-..#.#...#..
-....#.#....
-.##..S####.
-.##..#...#.
-.......##..
-.##.#.####.
-.##..##.##.
-...........`;
+// const input = `...........
+// .....###.#.
+// .###.##..#.
+// ..#.#...#..
+// ....#.#....
+// .##..S####.
+// .##..#...#.
+// .......##..
+// .##.#.####.
+// .##..##.##.
+// ...........`;
 
-// const input = require("fs").readFileSync("inputs/2023/21.txt").toString();
+const input = require("fs").readFileSync("inputs/2023/21.txt").toString();
 
 // const done = new Set()
 
-const threshold = 50;
+const threshold = 26501365;
 
 const grid = input.split("\n").map((line) => line.split(""));
 
@@ -41,22 +41,49 @@ const cache = {};
 
 const mapQueue = [[0, 0, [[startPoint[0], startPoint[1], 0]]]];
 
-// const mapQueue = [{ yMap: 0, xMap: 0, startPoints: [{ y: startPoint[0], x: startPoint[1], distance: 0 }] }]
-
 const solve = (yMap, xMap, startPoints) => {
-  const distanceUntilStart = startPoints[0][2]
+  // console.log(yMap, xMap, startPoints)
+  const distanceUntilStart = startPoints[0][2];
 
   const cacheKey = `${Math.sign(yMap)}#${Math.sign(xMap)}#${Math.sign(
     yMap - xMap
-  )}#${startPoints.map((p) =>p.join("|")).join("#")}`;
-  console.log(cacheKey);
+  )}#${Math.sign(Math.abs(yMap) - Math.abs(xMap))}#${distanceUntilStart % 2}#${startPoints
+    .map((p) => p.filter((n, i) => i !== 2).join("|"))
+    .join("#")}`;
+  // console.log(cacheKey);
 
-  // if (cache.has(cacheKey)) {
+  if (cacheKey in cache) {
+    console.log('hit')
+    const cacheEntry = cache[cacheKey];
 
-  // }
+    // console.log(JSON.stringify(cacheEntry))
 
-  const cacheEntry = { count: 0, furtherCalls: [] }
-  const furtherCalls = []
+    if (cacheEntry.maxDistance + distanceUntilStart < threshold) {
+      count += cacheEntry.count;
+
+      cacheEntry.furtherCalls.forEach((furtherCall) => {
+        const mappedFurtherCall = [
+          yMap + furtherCall[0],
+          xMap + furtherCall[1],
+          furtherCall[2].map((startPoint) => {
+            return [
+              startPoint[0],
+              startPoint[1],
+              startPoint[2] + distanceUntilStart,
+            ];
+          }),
+        ];
+        // console.log('further', mappedFurtherCall)
+        mapQueue.unshift(mappedFurtherCall);
+      });
+      return;
+    }
+  }
+
+  console.log('miss')
+
+  const cacheEntry = { count: 0, furtherCalls: [], maxDistance: 0 };
+  const furtherCalls = [];
 
   const visited = new Set();
   const queue = startPoints;
@@ -65,6 +92,8 @@ const solve = (yMap, xMap, startPoints) => {
   let wentRight = ["never", null];
   let wentDown = ["never", null];
   let wentLeft = ["never", null];
+
+  let wentAboveThreshold = false;
 
   while (queue.length > 0) {
     const [y, x, distance] = queue.pop();
@@ -81,18 +110,25 @@ const solve = (yMap, xMap, startPoints) => {
     }
 
     if (distance > threshold) {
+      wentAboveThreshold = true;
       continue;
     }
+
+    cacheEntry.maxDistance = Math.max(
+      cacheEntry.maxDistance,
+      distance - distanceUntilStart
+    );
 
     if (y === 0 && yMap <= 0 && Math.abs(yMap) >= Math.abs(xMap)) {
       if (wentUp[0] === "never") {
         wentUp[0] = distance;
         wentUp[1] = [[maxY, x, distance + 1 - distanceUntilStart]];
-        furtherCalls.push([yMap - 1, xMap, wentUp[1]]);
+        furtherCalls.push([-1, 0, wentUp[1]]);
       } else if (
         wentUp[1].every(([_, priorX, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(x - priorX)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) <
+            Math.abs(x - priorX)
           );
         })
       ) {
@@ -103,11 +139,12 @@ const solve = (yMap, xMap, startPoints) => {
       if (wentDown[0] === "never") {
         wentDown[0] = distance;
         wentDown[1] = [[0, x, distance + 1 - distanceUntilStart]];
-        furtherCalls.push([yMap + 1, xMap, wentDown[1]]);
+        furtherCalls.push([1, 0, wentDown[1]]);
       } else if (
         wentDown[1].every(([_, priorX, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(x - priorX)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) <
+            Math.abs(x - priorX)
           );
         })
       ) {
@@ -119,11 +156,12 @@ const solve = (yMap, xMap, startPoints) => {
       if (wentLeft[0] === "never") {
         wentLeft[0] = distance;
         wentLeft[1] = [[y, maxX, distance + 1 - distanceUntilStart]];
-        furtherCalls.push([yMap, xMap - 1, wentLeft[1]]);
+        furtherCalls.push([0, -1, wentLeft[1]]);
       } else if (
         wentLeft[1].every(([priorY, _, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(y - priorY)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) <
+            Math.abs(y - priorY)
           );
         })
       ) {
@@ -134,11 +172,12 @@ const solve = (yMap, xMap, startPoints) => {
       if (wentRight[0] === "never") {
         wentRight[0] = distance;
         wentRight[1] = [[y, 0, distance + 1 - distanceUntilStart]];
-        furtherCalls.push([yMap, xMap + 1, wentRight[1]]);
+        furtherCalls.push([0, 1, wentRight[1]]);
       } else if (
         wentRight[1].every(([priorY, _, priorDistance]) => {
           return (
-            Math.abs(distance - (priorDistance - 1)) < Math.abs(y - priorY)
+            Math.abs(distance - (priorDistance - 1 + distanceUntilStart)) <
+            Math.abs(y - priorY)
           );
         })
       ) {
@@ -154,7 +193,11 @@ const solve = (yMap, xMap, startPoints) => {
       Math.abs(xMap) === Math.abs(yMap)
     ) {
       // top left
-      furtherCalls.push([yMap - 1, xMap - 1, [[maxY, maxX, distance + 2 - distanceUntilStart]]]);
+      furtherCalls.push([
+        -1,
+        -1,
+        [[maxY, maxX, distance + 2 - distanceUntilStart]],
+      ]);
     }
     if (
       y === 0 &&
@@ -164,7 +207,11 @@ const solve = (yMap, xMap, startPoints) => {
       Math.abs(xMap) === Math.abs(yMap)
     ) {
       // top right
-      furtherCalls.push([yMap - 1, xMap + 1, [[maxY, 0, distance + 2 - distanceUntilStart]]]);
+      furtherCalls.push([
+        -1,
+        1,
+        [[maxY, 0, distance + 2 - distanceUntilStart]],
+      ]);
     }
     if (
       y === maxY &&
@@ -174,7 +221,11 @@ const solve = (yMap, xMap, startPoints) => {
       Math.abs(xMap) === Math.abs(yMap)
     ) {
       // bottom left
-      furtherCalls.push([yMap + 1, xMap - 1, [[0, maxX, distance + 2 - distanceUntilStart]]]);
+      furtherCalls.push([
+        1,
+        -1,
+        [[0, maxX, distance + 2 - distanceUntilStart]],
+      ]);
     }
     if (
       y === maxY &&
@@ -184,7 +235,7 @@ const solve = (yMap, xMap, startPoints) => {
       Math.abs(xMap) === Math.abs(yMap)
     ) {
       // bottom right
-      furtherCalls.push([yMap + 1, xMap + 1, [[0, 0, distance + 2 - distanceUntilStart]]]);
+      furtherCalls.push([1, 1, [[0, 0, distance + 2 - distanceUntilStart]]]);
     }
 
     if (distance % 2 === threshold % 2) {
@@ -197,32 +248,31 @@ const solve = (yMap, xMap, startPoints) => {
     queue.unshift([y, x + 1, distance + 1]);
   }
 
-  furtherCalls.forEach(furtherCall => {
-    const mappedFurtherCall = [furtherCall[0], furtherCall[1], furtherCall[2].map(startPoint => {
-      return [startPoint[0], startPoint[1], startPoint[2] + distanceUntilStart]
-    })]
-    mapQueue.unshift(mappedFurtherCall)
-    cacheEntry.furtherCalls.push(furtherCall)
-  })
+  furtherCalls.forEach((furtherCall) => {
+    const mappedFurtherCall = [
+      yMap + furtherCall[0],
+      xMap + furtherCall[1],
+      furtherCall[2].map((startPoint) => {
+        return [
+          startPoint[0],
+          startPoint[1],
+          startPoint[2] + distanceUntilStart,
+        ];
+      }),
+    ];
+    mapQueue.unshift(mappedFurtherCall);
+    cacheEntry.furtherCalls.push(furtherCall);
+  });
 
+  // console.log(cacheEntry.count, wentAboveThreshold)
 
-  // console.log('returning from', yMap, xMap)
-
-  cache[cacheKey] = cacheEntry
+  if (!wentAboveThreshold) {
+    cache[cacheKey] = cacheEntry;
+  }
 };
 
 while (mapQueue.length > 0) {
   solve(...mapQueue.pop());
 }
 
-console.log(JSON.stringify(cache, null, 2))
-
-// solve(0, 0, startPoint[0], startPoint[1], 0)
-
 console.log(count);
-
-//  22222
-//  21112
-//  21012
-//  21112
-//  22222
