@@ -167,10 +167,18 @@ for (let t2 = 2; t2 < 10000000000; t2++) {
 
 // check(particles[1], particles[0], 3, 5)
 
+// px_1 + t_1 * vx_1 = px_u + t_1 * vx_u
+// py_1 + t_1 * vy_1 = py_u + t_1 * vy_u
+// pz_1 + t_1 * vz_1 = pz_u + t_1 * vz_u
+
+// px_2 + t_2 * vx_2 = px_u + t_2 * vx_u
+// py_2 + t_2 * vy_2 = py_u + t_2 * vy_u
+// pz_2 + t_2 * vz_2 = pz_u + t_2 * vz_u
 
 
 // assume t2 > t1
 // p_1 + t_1 * v_1 = p_2 + t_2 * v_2 + (t2 - t1) * v_x
 // p_1 + t_1 * v_1 = p_2 + t_2 * v_2 + t_2 * v_x - t_1 * v_x
 // p_1 + t_1 * v_1 + t_1 * v_x = p_2 + t_2 * v_2 + t_2 * v_x
+
 // p_1 + t_1 * (v_1 + v_x) = p_2 + t_2 * (v_2 + v_x)
