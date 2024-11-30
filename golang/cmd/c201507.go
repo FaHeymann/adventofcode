@@ -10,61 +10,165 @@ import (
 	"github.com/spf13/cobra"
 )
 
+type Gate struct {
+	result  int
+	resolve func() int
+}
+
+func resolve(value string, register map[string]Gate) int {
+	literalRegex := regexp.MustCompile(`^[0-9]+$`)
+	if literalRegex.MatchString(value) {
+		result, _ := strconv.Atoi(value)
+		return result
+	}
+	return register[value].resolve()
+}
+
 var c201507Cmd = &cobra.Command{
 	Use:   "c201507",
 	Short: "",
 	Long:  "",
 	Run: func(cmd *cobra.Command, args []string) {
-		input, _ := os.ReadFile("../inputs/2015/6.txt")
+		input, _ := os.ReadFile("../inputs/2015/7.txt")
 
-		grid := [1000][1000]bool{}
-		grid2 := [1000][1000]int{}
+		literalRegex := regexp.MustCompile(`^[0-9a-z]+$`)
+		andRegex := regexp.MustCompile(`(.+) AND (.+)`)
+		orRegex := regexp.MustCompile(`(.+) OR (.+)`)
+		notRegex := regexp.MustCompile(`NOT (.+)`)
+		lshiftRegex := regexp.MustCompile(`(.+) LSHIFT (.+)`)
+		rshiftRegex := regexp.MustCompile(`(.+) RSHIFT (.+)`)
 
-		fmt.Println(grid[0][0])
-
-		re := regexp.MustCompile(`(.*) ([0-9]+),([0-9]+) through ([0-9]+),([0-9]+)`)
+		register := make(map[string]Gate)
 
 		for _, line := range strings.Split(string(input), "\n") {
-			matches := re.FindStringSubmatch(line)
+			parts := strings.Split(line, " -> ")
 
-			yMin, _ := strconv.Atoi(matches[2])
-			xMin, _ := strconv.Atoi(matches[3])
-			yMax, _ := strconv.Atoi(matches[4])
-			xMax, _ := strconv.Atoi(matches[5])
-
-			for y := yMin; y <= yMax; y++ {
-				for x := xMin; x <= xMax; x++ {
-					if matches[1] == "toggle" {
-						grid[y][x] = !grid[y][x]
-						grid2[y][x] = grid2[y][x] + 2
-					}
-					if matches[1] == "turn on" {
-						grid[y][x] = true
-						grid2[y][x] = grid2[y][x] + 1
-					}
-					if matches[1] == "turn off" {
-						grid[y][x] = false
-						if grid2[y][x] > 0 {
-							grid2[y][x] = grid2[y][x] - 1
-						}
-					}
+			if literalRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
 				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					gate.result = resolve(parts[0], register)
+
+					return gate.result
+				}
+				register[parts[1]] = gate
 			}
+
+			if andRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
+				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					subParts := andRegex.FindStringSubmatch(parts[0])
+					gate.result = resolve(subParts[1], register) & resolve(subParts[2], register)
+
+					return gate.result
+				}
+				register[parts[1]] = gate
+			}
+
+			if orRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
+				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					subParts := orRegex.FindStringSubmatch(parts[0])
+					gate.result = resolve(subParts[1], register) | resolve(subParts[2], register)
+
+					return gate.result
+				}
+				register[parts[1]] = gate
+			}
+
+			if notRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
+				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					subParts := notRegex.FindStringSubmatch(parts[0])
+					gate.result = resolve(subParts[1], register) ^ 0xFFFF
+
+					return gate.result
+				}
+				register[parts[1]] = gate
+			}
+
+			if lshiftRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
+				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					subParts := lshiftRegex.FindStringSubmatch(parts[0])
+					gate.result = resolve(subParts[1], register) << resolve(subParts[2], register)
+
+					return gate.result
+				}
+				register[parts[1]] = gate
+			}
+
+			if rshiftRegex.MatchString(parts[0]) {
+				gate := Gate{
+					result: -1,
+				}
+				gate.resolve = func() int {
+					if gate.result > -1 {
+						return gate.result
+					}
+					subParts := rshiftRegex.FindStringSubmatch(parts[0])
+					gate.result = resolve(subParts[1], register) >> resolve(subParts[2], register)
+
+					return gate.result
+				}
+				register[parts[1]] = gate
+			}
+
 		}
 
-		count := 0
-		count2 := 0
+		fmt.Println(register)
+		// fmt.Println(register["x"].resolve())
+		// fmt.Println(register["y"].resolve())
+		// fmt.Println(register["d"].resolve())
+		// fmt.Println(register["e"].resolve())
+		// fmt.Println(register["h"].resolve())
+		// fmt.Println(register["i"].resolve())
+		// fmt.Println(register["f"].resolve())
+		// fmt.Println(register["g"].resolve())
 
-		for y := 0; y < 1000; y++ {
-			for x := 0; x < 1000; x++ {
-				if grid[y][x] {
-					count++
-				}
-				count2 += grid2[y][x]
+		answer1 := register["a"].resolve()
+
+		fmt.Println("Answer 1", answer1)
+
+		for key, value := range register {
+			fmt.Println(key)
+			fmt.Println(key == "b")
+			if key == "b" {
+				value.result = answer1
+			} else {
+				value.result = -1
 			}
+			fmt.Println(value)
 		}
-		fmt.Println("Answer 1", count)
-		fmt.Println("Answer 2", count2)
+
+		fmt.Println(register["a"])
+		fmt.Println(register["b"])
+
+		fmt.Println("Answer 2", register["a"].resolve())
 
 	},
 }
