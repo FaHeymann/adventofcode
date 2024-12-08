@@ -36,7 +36,9 @@ func solve2(result int, cur int, nums []int) bool {
 	next := nums[0]
 	concat, _ := strconv.Atoi(fmt.Sprintf("%d%d", cur, next))
 
-	return solve2(result, cur+next, nums[1:]) || solve2(result, cur*next, nums[1:]) || solve2(result, concat, nums[1:])
+	return solve2(result, cur+next, nums[1:]) ||
+		solve2(result, cur*next, nums[1:]) ||
+		solve2(result, concat, nums[1:])
 }
 
 func main() {

@@ -121,3 +121,10 @@ func main() {
 
 	fmt.Println(count)
 }
+
+func isEmpty(grid [][]string, y, x int) bool {
+	if x < 0 || y < 0 || y >= len(grid) || x >= len(grid[0]) {
+		return false
+	}
+	return grid[y][x] == "."
+}
