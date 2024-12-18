@@ -45,25 +45,11 @@ type Position struct {
 	dist int
 }
 
-func main() {
-	input := getInput()
-
-	lines := strings.Split(input, "\n")
-	corrupted := map[string]bool{}
-
-	for i, line := range lines {
-		if i == 1024 {
-			break
-		}
-		corrupted[line] = true
-	}
-
+func reachable(corrupted map[string]bool, maxCoord int, printDist bool) bool {
 	y, x := 0, 0
 
 	visited := map[string]bool{}
 	queue := []Position{{y: y, x: x, dist: 0}}
-
-	maxCoord := 70
 
 	for len(queue) > 0 {
 		cur := queue[0]
@@ -83,14 +69,34 @@ func main() {
 		visited[fmt.Sprintf("%d,%d", cur.y, cur.x)] = true
 
 		if cur.x == maxCoord && cur.y == maxCoord {
-			fmt.Println("done")
-			fmt.Println(cur.dist)
-			break
+			if printDist {
+				fmt.Println(cur.dist)
+			}
+			return true
 		}
 		queue = append(queue, Position{y: cur.y - 1, x: cur.x, dist: cur.dist + 1})
 		queue = append(queue, Position{y: cur.y + 1, x: cur.x, dist: cur.dist + 1})
 		queue = append(queue, Position{y: cur.y, x: cur.x - 1, dist: cur.dist + 1})
 		queue = append(queue, Position{y: cur.y, x: cur.x + 1, dist: cur.dist + 1})
 	}
+	return false
+}
 
+func main() {
+	input := getInput()
+
+	lines := strings.Split(input, "\n")
+	corrupted := map[string]bool{}
+
+	for i, line := range lines {
+		corrupted[line] = true
+		if i < 1023 {
+			continue
+		}
+		res := reachable(corrupted, 70, i == 1023)
+		if !res {
+			fmt.Println(line)
+			break
+		}
+	}
 }
